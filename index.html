@@ -8,234 +8,245 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            width: 95%;
-            max-width: 900px;
-            background-color: #ffffff;
-            border-radius: 1rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            padding: 2rem;
-            cursor: grab;
-        }
-        .container.dragging {
-            cursor: grabbing;
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .table-cell { padding: 0.75rem; vertical-align: middle; }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div id="chart-container" class="container mx-auto p-8 bg-white rounded-2xl shadow-xl">
-        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Moja Linia Życia Zawodowego</h1>
-        <p class="text-center text-gray-600 mb-8">Zadowolenie z pracy na przestrzeni lat</p>
-        <div class="relative h-96">
-            <canvas id="lifeChart"></canvas>
-        </div>
-        <div class="mt-8 text-center text-sm text-gray-500">
-            <p class="mb-2"><strong>Wskazówka:</strong> Możesz przeciągać punkty na wykresie w górę i w dół, aby edytować poziom zadowolenia.</p>
-            <p>Oś X: Stanowiska pracy</p>
-            <p>Oś Y: Poziom zadowolenia (od 0 do 10)</p>
-        </div>
-        <!-- Klucz kolorów -->
-        <div class="flex flex-wrap justify-center mt-6 space-x-4 text-xs md:text-sm">
-            <div class="flex items-center my-1">
-                <div class="w-4 h-4 rounded-full mr-2" style="background-color: rgba(59, 130, 246, 1);"></div>
-                Junior
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4 md:p-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- SEKCJA WYKRESU -->
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow-xl p-6 md:p-8">
+                <h1 class="text-3xl font-bold text-center mb-4 text-gray-800">Moja Linia Życia Zawodowego</h1>
+                <p class="text-center text-gray-600 mb-8">Zadowolenie z pracy na przestrzeni lat</p>
+                <div class="relative h-96">
+                    <canvas id="lifeChart"></canvas>
+                </div>
+                <div class="mt-8 text-center text-sm text-gray-500">
+                    <p><strong>Wskazówka:</strong> Przeciągaj punkty na wykresie, aby edytować poziom zadowolenia.</p>
+                </div>
+                <div id="legend-container" class="flex flex-wrap justify-center mt-6 gap-x-4 gap-y-2 text-xs md:text-sm">
+                    <!-- Legenda generowana dynamicznie -->
+                </div>
             </div>
-            <div class="flex items-center my-1">
-                <div class="w-4 h-4 rounded-full mr-2" style="background-color: rgba(34, 197, 94, 1);"></div>
-                Specjalista
-            </div>
-            <div class="flex items-center my-1">
-                <div class="w-4 h-4 rounded-full mr-2" style="background-color: rgba(249, 115, 22, 1);"></div>
-                Manager
-            </div>
-            <div class="flex items-center my-1">
-                <div class="w-4 h-4 rounded-full mr-2" style="background-color: rgba(139, 92, 246, 1);"></div>
-                Director
+
+            <!-- SEKCJA ZARZĄDZANIA DANYMI -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">Zarządzaj Stanowiskami</h2>
+                
+                <!-- Tabela z listą stanowisk -->
+                <div class="mb-6 h-64 overflow-y-auto border rounded-lg">
+                    <table class="w-full text-left text-sm text-gray-700">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>
+                                <th class="table-cell">Stanowisko</th>
+                                <th class="table-cell text-center">Lata</th>
+                                <th class="table-cell"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="jobs-table-body">
+                            <!-- Wiersze będą dodawane tutaj przez JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Formularz dodawania nowego stanowiska -->
+                <h3 class="text-xl font-bold mb-4 text-gray-800">Dodaj Nowe Stanowisko</h3>
+                <form id="add-job-form">
+                    <div class="mb-4">
+                        <label for="job-name" class="block text-sm font-medium text-gray-700 mb-2">Nazwa Stanowiska</label>
+                        <input type="text" id="job-name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div class="mb-4">
+                        <label for="job-years" class="block text-sm font-medium text-gray-700 mb-2">Liczba Lat (1-10)</label>
+                        <input type="number" id="job-years" value="1" min="1" max="10" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">Dodaj</button>
+                </form>
             </div>
         </div>
     </div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const chartContainer = document.getElementById('chart-container');
-            const canvas = document.getElementById('lifeChart');
-            const ctx = canvas.getContext('2d');
+    document.addEventListener('DOMContentLoaded', () => {
+        const canvas = document.getElementById('lifeChart');
+        const ctx = canvas.getContext('2d');
+        const form = document.getElementById('add-job-form');
+        const legendContainer = document.getElementById('legend-container');
+        const tableBody = document.getElementById('jobs-table-body');
 
-            // Dane do wykresu. Każde stanowisko ma 3 punkty.
-            const initialData = [
-                7, 7, 8,
-                8, 9, 8,
-                6, 5, 5,
-                9, 10, 9
-            ];
+        let lifeChart;
+        let jobData = [
+            { name: 'Serwisant elektronik', years: 2, satisfaction: [7, 7, 8], color: 'rgba(59, 130, 246, 1)' },
+            { name: 'Inżynier wsparcia tech.', years: 3, satisfaction: [8, 9, 8], color: 'rgba(34, 197, 94, 1)' },
+            { name: 'Product Sales Manager', years: 2, satisfaction: [6, 5, 5], color: 'rgba(249, 115, 22, 1)' },
+            { name: 'Key Account Manager', years: 4, satisfaction: [9, 10, 9], color: 'rgba(139, 92, 246, 1)' }
+        ];
 
-            const jobLabels = [
-                'Serwisant elektronik',
-                'Inżynier wsparcia technicznego',
-                'Product Sales Manager',
-                'Key Account Manager'
-            ];
-            
-            // Definiowanie kolorów dla każdego stanowiska
-            const colors = {
-                blue: 'rgba(59, 130, 246, 1)',
-                green: 'rgba(34, 197, 94, 1)',
-                orange: 'rgba(249, 115, 22, 1)',
-                purple: 'rgba(139, 92, 246, 1)'
-            };
+        function generateRandomColor() {
+            const r = Math.floor(Math.random() * 200);
+            const g = Math.floor(Math.random() * 200);
+            const b = Math.floor(Math.random() * 200);
+            return `rgba(${r}, ${g}, ${b}, 1)`;
+        }
 
-            const labels = [];
-            let datasets = [];
-            let datasetCounter = 0;
+        // GŁÓWNA FUNKCJA DO PRZERYSOWYWANIA WSZYSTKIEGO
+        function renderUI() {
+            renderTable();
+            createOrUpdateChart();
+        }
 
-            for (let i = 0; i < initialData.length; i++) {
-                // Nowe stanowisko co 3 punkty
-                if (i % 3 === 0) {
-                    datasets.push({
-                        label: jobLabels[datasetCounter],
-                        data: Array(initialData.length).fill(null), // Wypełnij nullami, aby punkty się nie łączyły
-                        borderColor: Object.values(colors)[datasetCounter],
-                        borderWidth: 2,
-                        pointBackgroundColor: Object.values(colors)[datasetCounter],
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: Object.values(colors)[datasetCounter],
-                        tension: 0.4,
-                        fill: false,
-                        pointRadius: 6,
-                        pointHoverRadius: 8
-                    });
-                    datasetCounter++;
-                }
-                datasets[datasets.length - 1].data[i] = initialData[i];
-                labels.push('');
+        // Funkcja do renderowania tabeli
+        function renderTable() {
+            tableBody.innerHTML = '';
+            if (jobData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="3" class="text-center text-gray-500 p-4">Dodaj swoje pierwsze stanowisko.</td></tr>';
             }
+            jobData.forEach((job, index) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="table-cell">${job.name}</td>
+                    <td class="table-cell text-center">${job.years}</td>
+                    <td class="table-cell text-right">
+                        <button class="delete-btn text-red-500 hover:text-red-700" data-index="${index}">Usuń</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Funkcja do tworzenia i aktualizacji wykresu
+        function createOrUpdateChart() {
+            const labels = [];
+            const datasets = [];
+            let totalYears = jobData.reduce((sum, job) => sum + job.years, 0);
+            let currentYearCursor = 0;
 
-            const data = {
-                labels: labels,
-                datasets: datasets
-            };
+            jobData.forEach(job => {
+                job.color = job.color || generateRandomColor();
+                const dataPoints = Array(totalYears).fill(null);
+                
+                for (let i = 0; i < job.years; i++) {
+                    // Interpolacja wartości zadowolenia na przestrzeni lat danego stanowiska
+                    const progress = job.years > 1 ? i / (job.years - 1) : 0;
+                    const satisfactionIndex = Math.round(progress * (job.satisfaction.length - 1));
+                    dataPoints[currentYearCursor + i] = job.satisfaction[satisfactionIndex] || 5;
+                }
+                
+                datasets.push({
+                    label: job.name,
+                    data: dataPoints,
+                    borderColor: job.color,
+                    pointBackgroundColor: job.color,
+                    tension: 0.1, // Zmniejszono krzywiznę dla lepszej czytelności
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    borderWidth: 2.5,
+                    pointBorderColor: '#fff',
+                });
+                currentYearCursor += job.years;
+            });
+            
+            for (let i = 1; i <= totalYears; i++) {
+                labels.push(`Rok ${i}`);
+            }
+            
+            legendContainer.innerHTML = '';
+            jobData.forEach(job => {
+                legendContainer.innerHTML += `
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded-full mr-2" style="background-color: ${job.color};"></div>
+                        ${job.name}
+                    </div>
+                `;
+            });
 
-            const config = {
+            if (lifeChart) lifeChart.destroy();
+
+            lifeChart = new Chart(ctx, {
                 type: 'line',
-                data: data,
+                data: { labels, datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 10,
-                            title: {
-                                display: true,
-                                text: 'Zadowolenie z pracy',
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                }
-                            },
-                            ticks: {
-                                precision: 0
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Stanowiska pracy',
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                }
-                            },
-                            ticks: {
-                                // Wyświetlanie etykiety na środku każdego segmentu
-                                callback: function(val, index) {
-                                    const jobIndex = Math.floor(index / 3);
-                                    if ((index % 3) === 1) {
-                                        return jobLabels[jobIndex];
-                                    }
-                                    return null;
-                                }
-                            }
-                        }
+                        y: { beginAtZero: true, max: 10, title: { display: true, text: 'Zadowolenie' } },
+                        x: { title: { display: true, text: `Doświadczenie zawodowe (łącznie ${totalYears} lat)` } }
                     },
                     plugins: {
+                        legend: { display: false },
                         tooltip: {
                             callbacks: {
-                                label: function(context) {
-                                    const jobTitle = context.dataset.label;
-                                    let label = `Poziom zadowolenia dla: ${jobTitle}`;
-                                    if (context.parsed.y !== null) {
-                                        label += `: ${context.parsed.y}/10`;
-                                    }
-                                    return label;
-                                }
+                                // POPRAWIONA ETYKIETA
+                                label: context => `${context.dataset.label}: ${context.parsed.y.toFixed(1)} / 10`
                             }
-                        },
-                        legend: {
-                            display: false
                         }
                     }
                 }
-            };
-
-            const lifeChart = new Chart(ctx, config);
-
-            // --- Logika przeciągania punktów na wykresie ---
-            let isDragging = false;
-            let draggedPointIndex = null;
-            let draggedDatasetIndex = null;
-            let oldData;
-
-            canvas.addEventListener('mousedown', (e) => {
-                const points = lifeChart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
-                if (points.length > 0) {
-                    draggedPointIndex = points[0].index;
-                    draggedDatasetIndex = points[0].datasetIndex;
-                    isDragging = true;
-                    chartContainer.classList.add('dragging');
-                }
             });
+        }
+        
+        // --- OBSŁUGA ZDARZEŃ ---
 
-            canvas.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const jobNameInput = document.getElementById('job-name');
+            const jobYearsInput = document.getElementById('job-years');
 
-                const y = e.offsetY;
-                const yScale = lifeChart.scales.y;
-                const newValue = yScale.getValueForPixel(y);
-
-                if (newValue >= yScale.min && newValue <= yScale.max) {
-                    const dataset = lifeChart.data.datasets[draggedDatasetIndex];
-                    dataset.data[draggedPointIndex] = parseFloat(newValue.toFixed(2));
-                    
-                    lifeChart.update();
-                }
+            jobData.push({
+                name: jobNameInput.value,
+                years: parseInt(jobYearsInput.value),
+                satisfaction: [5, 5, 5], // Domyślne wartości dla nowego stanowiska
+                color: generateRandomColor()
             });
-
-            canvas.addEventListener('mouseup', () => {
-                isDragging = false;
-                draggedPointIndex = null;
-                draggedDatasetIndex = null;
-                chartContainer.classList.remove('dragging');
-            });
-
-            canvas.addEventListener('mouseout', () => {
-                if (isDragging) {
-                    isDragging = false;
-                    draggedPointIndex = null;
-                    draggedDatasetIndex = null;
-                    chartContainer.classList.remove('dragging');
-                }
-            });
-            // --- Koniec logiki przeciągania ---
+            
+            renderUI();
+            form.reset();
+            document.getElementById('job-years').value = 1; // Reset do wartości domyślnej
         });
+
+        tableBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-btn')) {
+                const index = parseInt(e.target.getAttribute('data-index'));
+                jobData.splice(index, 1); // Usuń element z tablicy
+                renderUI(); // Przerenderuj wszystko
+            }
+        });
+
+        // --- LOGIKA PRZECIĄGANIA (DRAG & DROP) ---
+        let isDragging = false;
+        canvas.addEventListener('mousedown', (e) => {
+            const points = lifeChart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+            if (points.length) {
+                const { datasetIndex, index } = points[0];
+                isDragging = { datasetIndex, index };
+                canvas.style.cursor = 'grabbing';
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const { datasetIndex, index } = isDragging;
+                const yScale = lifeChart.scales.y;
+                let newValue = yScale.getValueForPixel(e.offsetY);
+                newValue = Math.max(0, Math.min(10, newValue)); // Ograniczenie wartości 0-10
+                lifeChart.data.datasets[datasetIndex].data[index] = newValue;
+                lifeChart.update('none');
+            }
+        });
+        
+        const stopDragging = () => {
+            isDragging = false;
+            canvas.style.cursor = 'default';
+        };
+        canvas.addEventListener('mouseup', stopDragging);
+        canvas.addEventListener('mouseout', stopDragging);
+        
+        // Inicjalizacja przy starcie
+        renderUI();
+    });
     </script>
 </body>
 </html>
